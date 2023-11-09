@@ -1,13 +1,11 @@
 from transformers import BertForMaskedLM, AutoTokenizer, BertConfig, pipeline
 from config_attack import FILL_MASK_MODEL, DEVICES
 from utils import Argument_Dict
-from common import SubstitutionCandidate, OriginPhrase
-import spacy
-from nltk.tokenize.treebank import TreebankWordDetokenizer
+from common import SubstitutionCandidate, OriginalPhrase
+from utils import detokenize, tokenize
 
-nlp = spacy.load('en_core_web_sm')
 
-class FillMaskCandidate:
+class FillMaskCandidateGenerator:
 
     def __init__(self):
         encoder_decoder_type = Argument_Dict["encoder_decoder"]
@@ -19,7 +17,7 @@ class FillMaskCandidate:
         
         self._mask_token = '[MASK]'
         self._max_text_length = 512
-        self._treebank_word_detokenizer = TreebankWordDetokenizer()
+        
 
 
     def _encode_text(self, text):
@@ -33,37 +31,37 @@ class FillMaskCandidate:
         )
         return encoding.to(DEVICES[1])
 
-    def _tokenize(self, text):
-        doc = nlp(text)
-        tokens = [token.text for token in doc]
-        return tokens
-
-    def _detokenize(self, tokens):
-        return self._treebank_word_detokenizer.detokenize(tokens)
-
     def generate_mask_substitution(self, origin_phrase_list, origin_sentence_list):
-
-        for index, origin_phrase in enumerate(origin_phrase_list):
+        substitution_list = []
+        
+        for _, origin_phrase in enumerate(origin_phrase_list):
             sentence_list = [*origin_sentence_list]
             mask_text = ''
             token, sentence_index, position_list = origin_phrase.token, origin_phrase.sentence_index, origin_phrase.position_list
             for i in range(len(sentence_list)):
                 if i == sentence_index:
-                    word_list = self._tokenize(sentence_list[i])
-                    start, end = position_list[0], position_list[1] 
-                    for j in range(start, end):
-                        word_list[j] = ''
+                    word_list = tokenize(sentence_list[i])
+                    word_list_size = len(word_list)
+                    
+                    start, end = position_list[0], position_list[1]
+                    print("generate_mask_substitution word_list = {}".format(word_list))
+                    print("generate_mask_substitution start = {}, end = {}".format(start, end))
                     word_list[start] = self._mask_token
-                    sentence_list[i] = self._detokenize(word_list)
+                    for j in range(start + 1, end + 1):
+                        if j < word_list_size:
+                            word_list[j] = ''
+                    sentence_list[i] = detokenize(word_list)
             
             mask_text = ' '.join(sentence_list)
+            print("generate_mask_substitution mask_text = {}".format(mask_text))
             print("generate_mask_substitution token = {}".format(token))
             
             unmasker = pipeline('fill-mask', model=self._model, tokenizer=self._tokenizer) 
             output = unmasker(mask_text)
-            result_list = list(map(lambda element : element['token_str'], output))
-            print("generate_mask_substitution result = {}".format(result_list))
-            
-        return SubstitutionCandidate(token, result_list)
+            candicate_list = list(map(lambda element : element['token_str'], output))
+            print("generate_mask_substitution result = {}".format(candicate_list))
+            substitution_list.append(SubstitutionCandidate(token, candicate_list, [sentence_index, position_list[0], position_list[1]], mask_text))
+
+        return substitution_list
 
 

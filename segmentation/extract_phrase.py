@@ -7,7 +7,7 @@ from nltk.tree import Tree
 from spacy.lang.en import English
 from stanfordcorenlp import StanfordCoreNLP
 from tqdm import tqdm
-from common import OriginPhrase
+from common import OriginalPhrase
 
 def _add_indices_to_terminals(tree):
     tree = Tree.fromstring(tree)
@@ -84,7 +84,7 @@ def _extract_phrases(parser, local_sentences, stop_words_set):
                 phrases[i][0] = phrase[0].replace("-LRB-", "(")
                 phrases[i][0] = phrase[0].replace("-RRB-", ")")
     
-    phrases = list(map(lambda element : OriginPhrase(element[0], element[1], element[2], element[3]), phrases))
+    phrases = list(map(lambda element : OriginalPhrase(element[0], element[1], element[2], element[3]), phrases))
     return phrases, local_sentences, word_lists
 
 

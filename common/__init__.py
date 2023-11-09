@@ -1,1 +1,1 @@
-from .entity import SubstitutionCandidate, OriginPhrase
+from .entity import SubstitutionCandidate, OriginalPhrase
