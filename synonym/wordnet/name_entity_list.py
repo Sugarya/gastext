@@ -1,12 +1,11 @@
 # coding: utf-8
 import os
-import numpy as np
 import copy
 import spacy
 from collections import Counter, defaultdict
 
-nlp = spacy.load('en')
 
+nlp = spacy.load('en_core_web_sm')
 NE_type_dict = {
     'PERSON': defaultdict(int),  # People, including fictional.
     'NORP': defaultdict(int),  # Nationalities or religious or political groups.

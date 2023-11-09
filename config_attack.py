@@ -8,6 +8,10 @@ DATASETS = {
     'qnli': 'qnli.tsv',
 }
 
+FILL_MASK_MODEL = {
+    'bert-base': ('../preTrainedModel/bert-base-uncased', '../preTrainedModel/bert-base-uncased/config.json')
+}
+
 
 VICTIMS = {
     'ag': '../preTrainedModel/bert-base-uncased-ag-news/',
@@ -20,3 +24,6 @@ if len(DEVICES) == 0:
     DEVICES = ['cpu'] * 2
 elif len(DEVICES) == 1:
     DEVICES = DEVICES * 2
+
+
+

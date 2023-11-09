@@ -1,15 +1,15 @@
-import attr
-import spacy
-from functools import partial
-from nltk.corpus import wordnet
-from .name_entity_list import NE_list
 
-nlp = spacy.load('en_core_web_sm')
-# Penn TreeBank POS tags:
-# http://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+from functools import partial
+from nltk.corpus import wordnet as wn
+from .name_entity_list import NE_list
+from common import SubstitutionCandidate, OriginPhrase
+
 
 # https://www.section.io/engineering-education/getting-started-with-nltk-wordnet-in-python/
 
+
+# Penn TreeBank POS tags:
+# http://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
 supported_pos_tags = [
     'CC',  # coordinating conjunction, like "and but neither versus whether yet so"
     # 'CD',   # Cardinal number, like "mid-1890 34 forty-two million dozen"
@@ -49,87 +49,54 @@ supported_pos_tags = [
     # 'WRB',  # Wh-adverb, like "however wherever whenever"
 ]
 
+def _get_wordnet_pos(treebank_tag):
 
-@attr.s
-class SubstitutionCandidate:
-    token_position = attr.ib()
-    similarity_rank = attr.ib()
-    original_token = attr.ib()
-    candidate_word = attr.ib()
-
-def generate_wordnet_synonym(token, position, dataset, true_y):
-    NE_candidates = NE_list.L[dataset][true_y]
-    NE_tags = list(NE_candidates.keys())        
-    candidates = []
-    NER_tag = token.ent_type_
-    if NER_tag in NE_tags:
-        candidate = SubstitutionCandidate(position, 0, token, NE_candidates[NER_tag])
-        candidates.append(candidate)
+    if treebank_tag.startswith('J'):
+        return wn.ADJ
+    elif treebank_tag.startswith('V'):
+        return wn.VERB
+    elif treebank_tag.startswith('N'):
+        return wn.NOUN
+    elif treebank_tag.startswith('R'):
+        return wn.ADV
     else:
-        candidates = _generate_synonym_candidates(token, position)
-    return candidates
+        return ''
 
 
-def _generate_synonym_candidates(token, token_position, rank_fn = None):
-    '''
-    Generate synonym candidates.
-    For each token in the doc, the list of WordNet synonyms is expanded.
-    :return candidates, a list, whose type of element is <class '__main__.SubstitutionCandidate'>
-            like SubstitutionCandidate(token_position=0, similarity_rank=10, original_token=Soft, candidate_word='subdued')
-    '''
-    if rank_fn is None:
-        rank_fn = vsm_similarity
+def generate_wordnet_substitution(origin_phrase_list):
+    # TODO 增加识别NE
+    # NE_candidates = NE_list.L[dataset_name][true_label]
+    candidate_list = []
+    for origin_phrase in origin_phrase_list:
+        token, pos_tag = origin_phrase.token, origin_phrase.pos_tag
+        candidate = _generate_synonym_candidate(_process_string(token), pos_tag)
+        candidate_list.append(candidate)
+    return candidate_list
+
+def _process_string(text):
+    text = text.replace("%", "")
+    text = text.replace(" '", "'")
+    text = text.replace("$", "")
+    return text
+
+def _generate_synonym_candidate(phrase_text, pos_tag):
+    print("_generate_synonym_candidates phrase_text = {}".format(phrase_text))
     
-    candidates = []
-    if token.tag_ in supported_pos_tags:
-        wordnet_pos = _get_wordnet_pos(token)  # 'r', 'a', 'n', 'v' or None
-        
-        wordnet_synonyms = []
-        synsets = wordnet.synsets(token.text, pos = wordnet_pos)
-        for synset in synsets:
-            wordnet_synonyms.extend(synset.lemmas())
-
-        synonyms = []
-        for wordnet_synonym in wordnet_synonyms:
-            spacy_synonym = nlp(wordnet_synonym.name().replace('_', ' '))[0]
-            synonyms.append(spacy_synonym)
-
-        synonyms = filter(partial(_synonym_prefilter_fn, token), synonyms)
-        candidate_set = set()
-        for _, synonym in enumerate(synonyms):
-            candidate_word = synonym.text
-            if candidate_word in candidate_set:  # avoid repetition
-                continue
-            candidate_set.add(candidate_word)
-            candidate = SubstitutionCandidate(
-                token_position=token_position,
-                similarity_rank=None,
-                original_token=token,
-                candidate_word=candidate_word)
-            candidates.append(candidate)
-    return candidates
-
-def vsm_similarity(doc, original, synonym):
-    window_size = 3
-    start = max(0, original.i - window_size)
-    return doc[start: original.i + window_size].similarity(synonym)
-
-def _get_wordnet_pos(spacy_token):
-    '''Wordnet POS tag'''
-    pos = spacy_token.tag_[0].lower()
-    if pos in ['r', 'n', 'v']:  # adv, noun, verb
-        return pos
-    elif pos == 'j':
-        return 'a'  # adj
-
-def _synonym_prefilter_fn(token, synonym):
-    '''
-    Similarity heuristics go here
-    '''
-    if (len(synonym.text.split()) > 2 or (  # the synonym produced is a phrase
-            synonym.lemma == token.lemma) or (  # token and synonym are the same
-            synonym.tag != token.tag) or (  # the pos of the token synonyms are different
-            token.text.lower() == 'be')):  # token is be
-        return False
-    else:
-        return True
+    synsets = []
+    # synsets = wn.synsets(phrase_text, check_exceptions=False)
+    try:
+        if pos_tag in supported_pos_tags:
+            wordnet_post = _get_wordnet_pos(pos_tag)
+            print("_generate_synonym_candidates wordnet_post = {}".format(wordnet_post))
+            synsets = wn.synsets(phrase_text, pos = wordnet_post)
+        else:
+            synsets = wn.synsets(phrase_text)    
+    except (RuntimeError, KeyError):
+        pass
+    wordnet_synonyms = [ synset.lemma_names() for synset in synsets] # lemma_names() / lemmas
+    synonym_list = []
+    for synonym in wordnet_synonyms:
+        synonym_list.extend(synonym)
+    synonym_list = list(set(synonym_list))
+    # print("_generate_synonym_candidates synonym_list = {}".format(synonym_list))
+    return SubstitutionCandidate(phrase_text, synonym_list)  

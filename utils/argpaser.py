@@ -1,7 +1,9 @@
 import argparse
 
 
-def load_arguments(dataset=None):
+Argument_Dict = {}
+
+def parse_arguments():
     parser = argparse.ArgumentParser()
     
     parser.add_argument("--dataset",
@@ -13,21 +15,22 @@ def load_arguments(dataset=None):
                            default="ag",
                            type=str,
                            help="the victim to be attacked")
-
-    # parser.add_argument("--sample_number",
-    #                        default=50,
-    #                        type=int,
-    #                        help="the number of samples")
-    # parser.add_argument("--sample_batch_size",
-    #                        default=50,
-    #                        type=int,
-    #                        help="the batch size of sampling")
-    # parser.add_argument("--fill_mask_model",
-    #                        default="BART",
-    #                        type=str,
-    #                        help="model for phrase mask filling")
-
-
+    
+    parser.add_argument("--encoder_decoder",
+                           default="bert-base",
+                           type=str,
+                           help="the fill mask model")
+    
     args = parser.parse_args()
-    print(args)
+
+    global Argument_Dict
+    for key in list(args.__dict__.keys()):
+        Argument_Dict[key] = args.__dict__[key]
+        
     return args
+
+
+
+    
+    
+
