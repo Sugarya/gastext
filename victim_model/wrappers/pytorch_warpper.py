@@ -1,9 +1,9 @@
 import torch
 
-from .wrapper import Wrapper
+from ..basic_model import BaseModel
 
 
-class PyTorchWrapper(Wrapper):
+class PyTorchWrapper(BaseModel):
     def __init__(self, model, tokenizer):
         super(PyTorchWrapper, self).__init__()
 

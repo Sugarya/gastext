@@ -2,7 +2,7 @@
 from functools import partial
 from nltk.corpus import wordnet as wn
 from .name_entity_list import NE_list
-from common import SubstitutionCandidate, OriginalPhrase
+from common import WordnetSubstitution, OriginalPhrase
 
 
 # https://www.section.io/engineering-education/getting-started-with-nltk-wordnet-in-python/
@@ -91,7 +91,7 @@ class WordnetCandidateGenerator:
         synonym_list = list(set(synonym_list))
         # print("_generate_synonym_candidates synonym_list = {}".format(synonym_list))
         sentence_index, position_list = origin_phrase.sentence_index, origin_phrase.position_list
-        return SubstitutionCandidate(phrase_text, synonym_list, [sentence_index, position_list[0], position_list[1]])  
+        return WordnetSubstitution(phrase_text, synonym_list, [sentence_index, position_list[0], position_list[1]])  
 
 
     def generate_wordnet_substitution(self, origin_phrase_list):

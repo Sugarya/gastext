@@ -1,7 +1,7 @@
 from transformers import BertForMaskedLM, AutoTokenizer, BertConfig, pipeline
 from config_attack import FILL_MASK_MODEL, DEVICES
 from utils import Argument_Dict
-from common import SubstitutionCandidate, OriginalPhrase
+from common import MaskSubstitution, OriginalPhrase
 from utils import detokenize, tokenize
 
 
@@ -60,7 +60,7 @@ class FillMaskCandidateGenerator:
             output = unmasker(mask_text)
             candicate_list = list(map(lambda element : element['token_str'], output))
             print("generate_mask_substitution result = {}".format(candicate_list))
-            substitution_list.append(SubstitutionCandidate(token, candicate_list, [sentence_index, position_list[0], position_list[1]], mask_text))
+            substitution_list.append(MaskSubstitution(token, candicate_list, [sentence_index, position_list[0], position_list[1]], mask_text))
 
         return substitution_list
 

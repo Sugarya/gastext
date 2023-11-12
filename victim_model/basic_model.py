@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 
-class Wrapper(ABC):
+class BaseModel(ABC):
     sep_token = ''
 
     def __call__(self, workload, batch_size=64):

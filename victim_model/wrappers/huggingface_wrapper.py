@@ -1,9 +1,9 @@
 import torch
 
-from .wrapper import Wrapper
+from ..basic_model import BaseModel
 
 
-class HuggingFaceWrapper(Wrapper):
+class HuggingFaceWrapper(BaseModel):
     def __init__(self, model, tokenizer):
         super(HuggingFaceWrapper, self).__init__()
 
