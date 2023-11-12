@@ -16,7 +16,7 @@ class SubstitutionListCombination:
         mask_substitution_list = self._fill_mask_generator.generate_mask_substitution(origin_phrase_list, origin_sentence_list)
         # print("__call__ mask_substitution_list = {}".format(mask_substitution_list))
         
-        mask_substitution_list = self._flat_filter(origin_phrase_list, mask_substitution_list)
+        mask_substitution_list = self._flat_filter(origin_sentence_list, mask_substitution_list)
         return mask_substitution_list
         
 

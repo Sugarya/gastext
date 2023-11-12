@@ -26,7 +26,9 @@ if __name__ == '__main__':
         # print("__main__ local_sentences = {}".format(local_sentences))
         substitution_list = substitution_generate(phrases, local_sentences)
 
+        real_label = example[0]
         
+
 
         # plogits = victim_model_wrapper(local_sentences)
         # print("__main__ example output = {}".format(plogits))
