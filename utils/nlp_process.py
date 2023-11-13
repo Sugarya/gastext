@@ -11,3 +11,12 @@ def tokenize(text):
 
 def detokenize(tokens):
     return treebank_word_detokenizer.detokenize(tokens)
+
+# # substition: original_token,candidate_tokens, position_list
+# def replace_origin(sentence, origin_token, candidate_token):
+#     sentence.replace(origin_token, candidate_token, 1)
+#     return sentence
+
+# def replace_candidate(sentence, origin_token, candidate_token):
+#     sentence.replace(candidate_token, origin_token, 1)
+#     return sentence

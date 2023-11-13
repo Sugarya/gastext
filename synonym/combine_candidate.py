@@ -62,8 +62,7 @@ class SubstitutionListCombination:
             lambda t : Substitution(
                 t.original_token, 
                 t.candidate_tokens, 
-                t.position_list,
-                [*origin_sentence_list]),
+                t.position_list),
             filter_substitution_randking))
         print("_flat_filter_map result = {}".format(result))
 

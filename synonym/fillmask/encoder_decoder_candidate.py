@@ -1,7 +1,7 @@
 from transformers import BertForMaskedLM, AutoTokenizer, BertConfig, pipeline
 from config_attack import FILL_MASK_MODEL, DEVICES
 from utils import Argument_Dict
-from common import MaskSubstitution, OriginalPhrase
+from common import MaskSubstitution
 from utils import detokenize, tokenize
 
 

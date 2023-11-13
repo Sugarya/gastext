@@ -1,2 +1,2 @@
 # gastext
-GAStext: Generate Adversarial Sample for text
+GASText: Generate Adversarial Sample for Text

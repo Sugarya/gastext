@@ -2,7 +2,7 @@
 from functools import partial
 from nltk.corpus import wordnet as wn
 from .name_entity_list import NE_list
-from common import WordnetSubstitution, OriginalPhrase
+from common import WordnetSubstitution
 
 
 # https://www.section.io/engineering-education/getting-started-with-nltk-wordnet-in-python/

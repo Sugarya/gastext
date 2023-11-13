@@ -27,17 +27,14 @@ if __name__ == '__main__':
     origin_examples = load_data(dataset_name)
     for index, example in enumerate(origin_examples) :
         print("---------------------------------------------------------start")
-        phrases, local_sentences, _ = rule_based_extract.extract_example(example)
+        origin_phrases, local_sentences, _ = rule_based_extract.extract_example(example)
         # print("__main__ phrases = {}".format(phrases))
         # print("__main__ local_sentences = {}".format(local_sentences))
-        substitution_list = generate_substitution(phrases, local_sentences)
+        substitution_list = generate_substitution(origin_phrases, local_sentences)
 
         real_label = example[0]
-        
+        random_walk_transform(substitution_list, local_sentences, real_label)
 
-
-        # plogits = victim_model_wrapper(local_sentences)
-        # print("__main__ example output = {}".format(plogits))
 
 
 

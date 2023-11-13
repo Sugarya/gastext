@@ -16,13 +16,13 @@ class HuggingFaceWrapper(BaseModel):
     def _forward(self, text_list):
         inputs = self._tokenizer(
             text_list,
-            padding=True,
-            truncation=True,
-            return_tensors='pt',
+            padding = True,
+            truncation = True,
+            return_tensors = 'pt',
         )
         device = next(self._model.parameters()).device
         inputs.to(device)
-        print("_forward inputs={}".format(inputs))
+        # print("_forward inputs = {}".format(inputs))
         with torch.no_grad():            
             outputs = self._model(**inputs)
 
