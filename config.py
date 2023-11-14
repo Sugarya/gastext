@@ -12,6 +12,11 @@ FILL_MASK_MODEL = {
     'bert-base': ('../preTrainedModel/bert-base-uncased', '../preTrainedModel/bert-base-uncased/config.json')
 }
 
+MODEL_POOL = {
+    'use_path': 'preTrainedModel/universal-sentence-encoder_4/',
+    'use': 'https://hub.tensorflow.google.cn/google/universal-sentence-encoder/4'
+}
+
 
 VICTIMS = {
     'ag': '../preTrainedModel/bert-base-uncased-ag-news/',

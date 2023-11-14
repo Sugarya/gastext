@@ -5,8 +5,9 @@ from victim_model import HuggingFaceWrapper
 from segmentation import RuleBasedExtract
 from utils import parse_arguments
 from synonym import SubstitutionListCombination
-from config_attack import VICTIMS, DEVICES
+from config import VICTIMS, DEVICES
 from adversary_transform import RandomWalkTransfomer
+from evaluation_metrics import start_evaluation, fresh_evaluation, get_calculation_list
 
 if __name__ == '__main__':
     args = parse_arguments()
@@ -26,16 +27,17 @@ if __name__ == '__main__':
     # 加载数据,生成对抗样本
     origin_examples = load_data(dataset_name)
     for index, example in enumerate(origin_examples) :
+        real_label = example[0]
         print("---------------------------------------------------------start")
         origin_phrases, local_sentences, _ = rule_based_extract.extract_example(example)
+        start_evaluation(local_sentences)
         # print("__main__ phrases = {}".format(phrases))
         # print("__main__ local_sentences = {}".format(local_sentences))
         substitution_list = generate_substitution(origin_phrases, local_sentences)
+        adversarial_sentences = random_walk_transform(substitution_list, local_sentences, real_label)
 
-        real_label = example[0]
-        random_walk_transform(substitution_list, local_sentences, real_label)
+        fresh_evaluation(adversarial_sentences)
 
-
-
-
+    calculation_list = get_calculation_list()
+    print("calculation_list = {}".format(calculation_list))
 

@@ -1,6 +1,6 @@
 
 import csv
-from config_attack import DATASETS
+from config import DATASETS
 
 
 def load_data(dataset_name):

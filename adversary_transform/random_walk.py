@@ -2,6 +2,7 @@ import random
 from typing import Any
 import numpy as np
 from .estimate import LikelihoodEstimator
+from evaluation_metrics import update_attack_status, update_perturbation_count, ATTACK_STATUS
 
 # 随机游走，生成候选对抗样本
 class RandomWalkTransfomer:
@@ -30,11 +31,15 @@ class RandomWalkTransfomer:
 
         return adversarial_sentences
         
-    # 贪心 逐个找概率最大的
+    '''
+        贪心 逐个找概率最大的
+        selection_list:[ ( sentence_index, candidate, origin_token) ]
+    '''
     def _reverse(self, candidate_sentence_list, selection_list):
         if len(selection_list) <= 0:
+            update_attack_status(ATTACK_STATUS.FAILURE)
             print("************************* FAILURE ********************")
-            return candidate_sentence_list
+            return []
         
         local_selection_list = [*selection_list]
         new_sentence_list = [*candidate_sentence_list]
@@ -59,20 +64,30 @@ class RandomWalkTransfomer:
             if max_score > -10000:
                 del local_selection_list[max_index]
                 new_sentence_list = max_sentences
-                print("*************************************** reverse success ********************")
+                print("*************************************** REVERSE SUCCESS ********************")
+                
+                perturbation_count = 0
+                for selection in local_selection_list:
+                    perturbation_count += len(selection.origin_token.split(' '))
+                update_perturbation_count(perturbation_count)
             else:
                 break
-        return new_sentence_list
+        update_attack_status(ATTACK_STATUS.SUCCESS) 
 
-    # 组合问题，搜索    
+        return new_sentence_list
+  
+    '''
+    组合问题，搜索 
+    1. num从大到小，(n, num)组合问题，得到num个substitution
+
+    2. 使用num个substitution变换文本，产生多个分类标签不变的候选
+    3. 和变换前的输入文本的求相对熵，最大的表示为候选样本
+    4. 如果候选样本词改变量数量不大于3，则为对抗样本，如果改变量数量大于3，则进入微调，继续执行random->reverse
+    ''' 
     def _reverse2(self, candidate_sentence_list, substitution_list, predict_plogits):
         local_substitution_list = [*substitution_list]
 
-        # 1. num从大到小，(n, num)组合问题，得到num个substitution，
 
-        # 2. 使用num个substitution变换文本，产生多个分类标签不变的候选，
-        # 3. 和变换前的输入文本的求相对熵，最大的表示为候选样本
-        # 4. 如果候选样本词改变量数量不大于3，则为对抗样本，如果改变量数量大于3，则进入微调，继续执行random->reverse
         
         pass
 

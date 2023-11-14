@@ -28,3 +28,11 @@ class Substitution:
     candidate_tokens = attr.ib() # ['', ''], 同义词集
     position_list = attr.ib() # original_token在文本中的位置 [sentent_index, start_index, end_index]
     
+
+@attr.s
+class Calculation:
+    origin_sentences = attr.ib()
+    adversary_sentences = attr.ib()
+    query_count = attr.ib()
+    perturbation_count = attr.ib()
+    attack_status = attr.ib() # 1 成功，0 失败

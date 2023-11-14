@@ -1,9 +1,10 @@
 from typing import Any
 import numpy as np
 from scipy.special import softmax
+from evaluation_metrics import query_increase
 
 
-class LikelihoodEstimator():
+class LikelihoodEstimator:
 
     def __init__(self, victim_model):
         self._victim_model = victim_model
@@ -27,5 +28,6 @@ class LikelihoodEstimator():
         # probs = softmax(logits)
         # print("LikelihoodEstimator get_predict probs = {}".format(probs))
         predict_label = np.argmax(logits)
+        query_increase()
         return logits, predict_label
 
