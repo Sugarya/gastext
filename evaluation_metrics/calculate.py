@@ -1,6 +1,6 @@
 import os
 import numpy as np
-# import tensorflow_hub as hub
+import tensorflow_hub as hub
 import sklearn
 from sklearn.metrics.pairwise import cosine_similarity
 from config import MODEL_POOL
@@ -13,9 +13,9 @@ class Calculator:
     def __init__(self):
         self._calculation_list = []
 
-        local_cache_path = os.path.join(Path(__file__).parent, MODEL_POOL['use_path'])
+        local_cache_path = os.path.join(Path(__file__).parent.parent.parent, MODEL_POOL['use_path'])
         print("Calculator local_cache_path = {}".format(local_cache_path))
-        # self._use = hub.load(local_cache_path)
+        self._use = hub.load(local_cache_path)
         self._reset()
 
     def _reset(self):
