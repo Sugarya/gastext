@@ -1,6 +1,7 @@
 from typing import Any
 from .wordnet.wordnet_candidate import WordnetCandidateGenerator
 from .fillmask.encoder_decoder_candidate import FillMaskCandidateGenerator
+from .hownet.babelnet_candidate import BabelnetConceptGenerator
 from utils import tokenize
 from common import Substitution
 
@@ -10,6 +11,7 @@ class SubstitutionListCombination:
     def __init__(self):
         self._wordnet_generator = WordnetCandidateGenerator()
         self._fill_mask_generator = FillMaskCandidateGenerator()
+        self._babelnet_generator = BabelnetConceptGenerator()
     
     def __call__(self, origin_phrase_list, origin_sentence_list):
         # wordnet_substitution_list = self._wordnet_generator.generate_wordnet_substitution(origin_phrase_list)
