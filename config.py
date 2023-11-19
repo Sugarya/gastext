@@ -19,7 +19,7 @@ MODEL_POOL = {
 
 
 VICTIMS = {
-    'ag': '../preTrainedModel/bert-base-uncased-ag-news/',
+    'bert-base-uncased-ag': '../preTrainedModel/bert-base-uncased-ag-news/',
     'imdb': '../preTrainedModel/bert-base-uncased-imdb/',
     'yelp-polarity': '../preTrainedModel/bert-base-uncased-yelp-polarity/',
 }

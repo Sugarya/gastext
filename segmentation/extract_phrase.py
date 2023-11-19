@@ -120,7 +120,7 @@ class RuleBasedExtract:
         sents = self._sentencizer(text).sents
         local_sentences = [ sent.text for sent in sents ]
         phrases, local_sentences, word_lists = self._extract_phrases(self._parser, local_sentences, self._stop_words_set)
-        print("examples2phrases phrases = {}".format(phrases))
+        # print("examples2phrases phrases = {}".format(phrases))
         # print("examples2phrases local_sentences = {}".format(local_sentences))
         return phrases, local_sentences, word_lists
 

@@ -23,6 +23,12 @@ class MaskSubstitution:
     
 
 @attr.s
+class BabelnetSubstitution:
+    original_token = attr.ib() # ''
+    candidate_tokens = attr.ib() # ['', ''], 同义词集
+    position_list = attr.ib() # original_token在文本中的位置 [sentent_index, start_index, end_index]，
+
+@attr.s
 class Substitution:
     original_token = attr.ib() # ''
     candidate_tokens = attr.ib() # ['', ''], 同义词集

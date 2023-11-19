@@ -14,16 +14,43 @@ class SubstitutionListCombination:
         self._babelnet_generator = BabelnetConceptGenerator()
     
     def __call__(self, origin_phrase_list, origin_sentence_list):
+        print(f"__call__ origin_phrase_list = {origin_phrase_list}")
         # wordnet_substitution_list = self._wordnet_generator.generate_wordnet_substitution(origin_phrase_list)
         # print("__call__ wordnet_substitution_list = {}".format(wordnet_substitution_list))
-        mask_substitution_list = self._fill_mask_generator.generate_mask_substitution(origin_phrase_list, origin_sentence_list)
+        # mask_substitution_list = self._fill_mask_generator.generate_mask_substitution(origin_phrase_list, origin_sentence_list)
         # print("__call__ mask_substitution_list = {}".format(mask_substitution_list))
-        
-        substitution_list = self._flat_filter_map(origin_sentence_list, mask_substitution_list)
+
+        origin_phrase_list = self._pre_flat_filter_map(origin_sentence_list, origin_phrase_list)
+        babelnet_substitution_list = self._babelnet_generator.generate_babelnet_substitution(origin_phrase_list)
+        # print(f"__call__ babelnet_substitution_list = {babelnet_substitution_list}")
+        substitution_list = self._merge(babelnet_substitution_list)
+        print(f"__call__ substitution_list = {substitution_list}")
         return substitution_list
         
-    # 过滤
-    def _flat_filter_map(self, origin_sentence_list, mask_substitution_list):
+    def _merge(self, *var_args):
+        babelnet_substitution_list = var_args[0]
+        substitutions = list(map(
+            lambda t : Substitution(
+                t.original_token, 
+                t.candidate_tokens, 
+                t.position_list),
+            babelnet_substitution_list))
+        print("_flat_filter_map result = {}".format(substitutions))
+        return substitutions
+
+    '''
+        pharse: 
+        class OriginalPhrase:
+        token = attr.ib()
+        pos_tag = attr.ib()
+        sentence_index = attr.ib()
+        position_list = attr.ib() # [start_index, end_index]
+        
+        短语存在位置重叠，按最早结束和最短长度词语做贪心筛选
+    '''
+    def _pre_flat_filter_map(self, origin_sentence_list, origin_phrase_list):
+        if not isinstance(origin_phrase_list, list) or len (origin_phrase_list) <= 0:
+            return []
         addition_list = []
         count = 0
         for _, sentence in enumerate(origin_sentence_list):
@@ -31,41 +58,32 @@ class SubstitutionListCombination:
             addition_list.append(count)
             count += sentence_length
 
-        for substitution in mask_substitution_list:
-            position_list = substitution.position_list
-            sentent_index = position_list[0]
+        for phrase in origin_phrase_list:
+            sentent_index = phrase.sentence_index
+            position_list = phrase.position_list
+            position_list[0] = position_list[0] + addition_list[sentent_index]
             position_list[1] = position_list[1] + addition_list[sentent_index]
-            position_list[2] = position_list[2] + addition_list[sentent_index]
-        mask_substitution_randking = sorted(mask_substitution_list, key = lambda t: t.position_list[2], reverse = False)        
-
+        origin_phrase_randking = sorted(origin_phrase_list, key = lambda t: t.position_list[1], reverse = False)        
+        print("_flat_filter_map origin_phrase_randking = {}".format(origin_phrase_randking))
         pointer = 0
         next_pointer = pointer + 1
-        filter_substitution_randking = []
-        filter_substitution_randking.append(mask_substitution_randking[0])
+        filter_phrase_randking = []
+        filter_phrase_randking.append(origin_phrase_randking[0])
         # 贪心 活动安排
-        substitution_size = len(mask_substitution_randking)
+        substitution_size = len(origin_phrase_randking)
         while next_pointer < substitution_size:
-            if mask_substitution_randking[pointer].position_list[2] >= mask_substitution_randking[next_pointer].position_list[1]:
+            if origin_phrase_randking[pointer].position_list[1] >= origin_phrase_randking[next_pointer].position_list[0]:
                 next_pointer += 1
             else:
-                filter_substitution_randking.append(mask_substitution_randking[next_pointer])
+                filter_phrase_randking.append(origin_phrase_randking[next_pointer])
                 pointer = next_pointer
                 next_pointer = pointer + 1
-        print("_flat_filter_map filter_substitution_randking = {}".format(filter_substitution_randking))
-
+        print("_flat_filter_map filter_phrase_randking = {}".format(filter_phrase_randking))
         # 位置还原
-        for substitution in filter_substitution_randking:
-            position_list = substitution.position_list
-            sentent_index = position_list[0]
+        for phrase in filter_phrase_randking:
+            sentent_index = phrase.sentence_index
+            position_list = phrase.position_list
+            position_list[0] = position_list[0] - addition_list[sentent_index]
             position_list[1] = position_list[1] - addition_list[sentent_index]
-            position_list[2] = position_list[2] - addition_list[sentent_index]
 
-        result = list(map(
-            lambda t : Substitution(
-                t.original_token, 
-                t.candidate_tokens, 
-                t.position_list),
-            filter_substitution_randking))
-        print("_flat_filter_map result = {}".format(result))
-
-        return result
+        return filter_phrase_randking

@@ -12,7 +12,7 @@ def parse_arguments():
                            help="the dataset to be attacked")
     
     parser.add_argument("--victim",
-                           default="ag",
+                           default="bert-base-uncased-ag",
                            type=str,
                            help="the victim to be attacked")
     

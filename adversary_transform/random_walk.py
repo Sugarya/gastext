@@ -68,7 +68,7 @@ class RandomWalkTransfomer:
                 
                 perturbation_count = 0
                 for selection in local_selection_list:
-                    perturbation_count += len(selection.origin_token.split(' '))
+                    perturbation_count += len(selection[2].split(' '))
                 update_perturbation_count(perturbation_count)
             else:
                 break
