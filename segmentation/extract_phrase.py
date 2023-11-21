@@ -67,7 +67,7 @@ class RuleBasedExtract:
                             if t.strip().lower() not in stop_words_set:
                                 phrases.append([t, tree_label, i, [int(start_index), int(end_index)]])
 
-        return phrases    
+        return phrases
 
     def _extract_phrases(self, parser, local_sentences, stop_words_set):
         phrases = []
@@ -108,8 +108,7 @@ class RuleBasedExtract:
 
         return all_phrases, all_sentences, all_word_lists
     
-    def extract_example(self, example):
-        text = example[1]
+    def extract_example(self, text):
         # romove the sepcial token "%" as it will lead to error of consitency parsing
         text = text.replace("%", "")
         text = text.replace(" '", "'")

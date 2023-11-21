@@ -1,11 +1,7 @@
 # coding: utf-8
-import os
-import copy
-import spacy
 from collections import Counter, defaultdict
 
 
-nlp = spacy.load('en_core_web_sm')
 NE_type_dict = {
     'PERSON': defaultdict(int),  # People, including fictional.
     'NORP': defaultdict(int),  # Nationalities or religious or political groups.
@@ -28,36 +24,7 @@ NE_type_dict = {
 }
 
 
-def recognize_named_entity(texts):
-    '''
-    Returns all NEs in the input texts and their corresponding types
-    '''
-    NE_freq_dict = copy.deepcopy(NE_type_dict)
 
-    for text in texts:
-        doc = nlp(text)
-        for word in doc.ents:
-            NE_freq_dict[word.label_][word.text] += 1
-    return NE_freq_dict
-
-
-def find_adv_NE(D_true, D_other):
-    '''
-    find NE_adv in D-D_y_true which is defined in the end of section 3.1
-    '''
-    # adv_NE_list = []
-    for type in NE_type_dict.keys():
-        # find the most frequent true and other NEs of the same type
-        true_NE_list = [NE_tuple[0] for (i, NE_tuple) in enumerate(D_true[type]) if i < 15]
-        other_NE_list = [NE_tuple[0] for (i, NE_tuple) in enumerate(D_other[type]) if i < 30]
-
-        for other_NE in other_NE_list:
-            if other_NE not in true_NE_list and len(other_NE.split()) == 1:
-                # adv_NE_list.append((type, other_NE))
-                print("'" + type + "': '" + other_NE + "',")
-                with open('./{}.txt'.format(args.dataset), 'a', encoding='utf-8') as f:
-                    f.write("'" + type + "': '" + other_NE + "',\n")
-                break
 
 class NameEntityList(object):
     # If the original input in IMDB belongs to class 0 (negative)

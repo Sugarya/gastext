@@ -13,29 +13,40 @@ class SubstitutionListCombination:
         self._fill_mask_generator = FillMaskCandidateGenerator()
         self._babelnet_generator = BabelnetConceptGenerator()
     
-    def __call__(self, origin_phrase_list, origin_sentence_list):
-        print(f"__call__ origin_phrase_list = {origin_phrase_list}")
-        # wordnet_substitution_list = self._wordnet_generator.generate_wordnet_substitution(origin_phrase_list)
-        # print("__call__ wordnet_substitution_list = {}".format(wordnet_substitution_list))
+    def __call__(self, **arg_values):
+        # origin_phrase_list, origin_sentence_list, word_list = arg_values["phrase_list"], arg_values["sentence_list"]
+        origin_unit_list =  arg_values["unit_list"]
+        # print(f"__call__ word_list = {word_list}")
+        # origin_phrase_list = self._pre_flat_filter_map(origin_sentence_list, origin_phrase_list)
+
         # mask_substitution_list = self._fill_mask_generator.generate_mask_substitution(origin_phrase_list, origin_sentence_list)
         # print("__call__ mask_substitution_list = {}".format(mask_substitution_list))
 
-        origin_phrase_list = self._pre_flat_filter_map(origin_sentence_list, origin_phrase_list)
-        babelnet_substitution_list = self._babelnet_generator.generate_babelnet_substitution(origin_phrase_list)
+        wordnet_substitution_list = self._wordnet_generator.generate_substitution(origin_unit_list)
+        # print(f"__call__ wordnet_substitution_list = {wordnet_substitution_list}")
+        babelnet_substitution_list = self._babelnet_generator.generate_substitution(origin_unit_list)
         # print(f"__call__ babelnet_substitution_list = {babelnet_substitution_list}")
-        substitution_list = self._merge(babelnet_substitution_list)
-        print(f"__call__ substitution_list = {substitution_list}")
+
+        substitution_list = self._integrate(wordnet = wordnet_substitution_list, babelnet = babelnet_substitution_list)
         return substitution_list
         
-    def _merge(self, *var_args):
-        babelnet_substitution_list = var_args[0]
-        substitutions = list(map(
-            lambda t : Substitution(
-                t.original_token, 
-                t.candidate_tokens, 
-                t.position_list),
-            babelnet_substitution_list))
-        print("_flat_filter_map result = {}".format(substitutions))
+    def _integrate(self, **var_args):
+        wordnet_substitution_list = var_args["wordnet"]
+        babelnet_substitution_list = var_args["babelnet"]
+        substitutions = []
+        wordnet_len = len(wordnet_substitution_list)
+        babelnet_len = len(babelnet_substitution_list)
+        if wordnet_len == babelnet_len:
+            for substituion_tuple in list(zip(wordnet_substitution_list, babelnet_substitution_list)):
+                original_token = substituion_tuple[0].original_token    
+                sentence_index = substituion_tuple[0].sentence_index
+                origin_position = substituion_tuple[0].origin_position
+                container = []
+                container.extend(substituion_tuple[0].candidate_tokens)
+                container.extend(substituion_tuple[1].candidate_tokens)
+                candidate_tokens = list(set(container))
+                print(f"_integrate original_token = {original_token}, origin_position = {origin_position} candidate_tokens = {candidate_tokens}")
+                substitutions.append(Substitution(original_token, candidate_tokens, sentence_index, origin_position, origin_position))
         return substitutions
 
     '''

@@ -54,7 +54,7 @@ SUPPORTED_POS_TAGS = [
 ]
 
 def get_wordnet_pos(treebank_tag):
-    if treebank_tag.startswith('J'):
+    if treebank_tag.startswith('J') or treebank_tag.startswith('A'):
         return wn.ADJ
     elif treebank_tag.startswith('V'):
         return wn.VERB
@@ -64,3 +64,34 @@ def get_wordnet_pos(treebank_tag):
         return wn.ADV
     else:
         return ''
+    
+def format(word, reference_word):
+    word = remove_underline(word)
+    return recover_word_case(word, reference_word)
+
+def recover_word_case(word, reference_word):
+    # TODO 增加时态，语态
+    if reference_word.islower():
+        return word.lower()
+    elif reference_word.isupper() and len(reference_word) > 1:
+        return word.upper()
+    elif reference_word[0].isupper() and reference_word[1:].islower():
+        return word.capitalize()
+    else:
+        return word
+    
+'''
+[bn:00005054n|apple|苹果, bn:00005076n|apple_tree|苹果树]
+'''    
+def remove_underline(word):
+    if not isinstance(word, str):
+        return word
+    elif '_' in word:
+        return ' '.join(word.split('_'))
+    return word
+
+def _pre_process_string(text):
+    text = text.replace("%", "")
+    text = text.replace(" '", "'")
+    text = text.replace("$", "")
+    return text
