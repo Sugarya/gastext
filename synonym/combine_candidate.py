@@ -2,7 +2,7 @@ from typing import Any
 from .wordnet.wordnet_candidate import WordnetCandidateGenerator
 from .fillmask.encoder_decoder_candidate import FillMaskCandidateGenerator
 from .hownet.babelnet_candidate import BabelnetConceptGenerator
-from utils import tokenize
+from utils import spacy_process
 from common import Substitution
 
 
@@ -65,7 +65,7 @@ class SubstitutionListCombination:
         addition_list = []
         count = 0
         for _, sentence in enumerate(origin_sentence_list):
-            sentence_length = len(tokenize(sentence))
+            sentence_length = len(spacy_process.tokenize(sentence))
             addition_list.append(count)
             count += sentence_length
 

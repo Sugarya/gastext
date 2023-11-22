@@ -1,18 +1,4 @@
-import spacy
-from nltk.tokenize.treebank import TreebankWordDetokenizer
 from nltk.corpus import wordnet as wn
-
-nlp = spacy.load('en_core_web_sm')
-treebank_word_detokenizer = TreebankWordDetokenizer()
-
-def tokenize(text):
-    doc = nlp(text)
-    tokens = [token.text for token in doc]
-    return tokens
-
-def detokenize(tokens):
-    return treebank_word_detokenizer.detokenize(tokens)
-
 
 SUPPORTED_POS_TAGS = [
     'CC',  # coordinating conjunction, like "and but neither versus whether yet so"
