@@ -80,7 +80,7 @@ def split(text):
         enable = not token.is_stop and not token.text in name_entity_list and not token.pos_ in FILTER_POS_TAG
         if enable:
             # print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.pos_, token.is_stop}")
-            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, 0, j))
+            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, 0, j, token))
     return origin_unit_list
     
 '''
@@ -101,7 +101,7 @@ def split_list(texts):
             enable = not token.is_stop and not token.text in name_entity_list and not token.pos_ in FILTER_POS_TAG
             if enable:
                 print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.pos_, token.is_stop}")
-                token_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, i, j))
+                token_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, i, j, token))
 
     return token_list
 
@@ -116,6 +116,40 @@ def detokenize(token_list):
     text = re.sub('\s*\.\s*', '. ', text)
     text = re.sub('\s*\?\s*', '? ', text)
     return text
-         
 
+def filter_similar(spacy_token, synonym_list, similary_threshold):
+    sentence = ' '.join(synonym_list)
+    origin_score_list = __get_similar_token_score(spacy_token, sentence)
+    filter_tuple_list = list(filter(lambda t : t[0] > similary_threshold , list(zip(origin_score_list, synonym_list))))
+    synonym_list = list(map(lambda t : t[1], filter_tuple_list))
+    return synonym_list
 
+'''
+    筛选合并的同义词集, 在句子粒度的相似性
+'''
+def filter_similar_doc(origin_text, origin_position, candidate_synonyms, similary_threshold):
+    score_list = []
+    origin_doc = nlp(origin_text)
+    origin_token_list = tokenize(origin_text)
+    for synonym in candidate_synonyms:
+        cp_origin_token_list = [*origin_token_list]
+        # print(f"origin_token {cp_origin_token_list[origin_position]} =?= {original_token}")
+        cp_origin_token_list[origin_position] = synonym
+        synonym_text =  detokenize(cp_origin_token_list)
+        synonym_doc = nlp(synonym_text)
+        sim_score = origin_doc.similarity(synonym_doc)
+        score_list.append(sim_score)
+    zip_list = list(zip(score_list, candidate_synonyms))
+    # print(f"filter_similar_doc zip_list = {zip_list}")
+    filter_zip_list = filter(lambda t : t[0] > similary_threshold, zip_list)
+    sorted_zip_list = sorted(filter_zip_list, key = lambda t : t[0], reverse = True)
+    print(f"filter_similar_doc sorted_zip_list = {sorted_zip_list}")
+    return list(map(lambda t : t[1], sorted_zip_list))
+
+def __get_similar_token_score(spacy_token, sentence):
+    score_list = []
+    doc = nlp(sentence)
+    for token in doc:
+        sim_score = token.similarity(spacy_token)
+        score_list.append(sim_score)
+    return score_list

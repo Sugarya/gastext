@@ -13,9 +13,9 @@ class SubstitutionListCombination:
         self._fill_mask_generator = FillMaskCandidateGenerator()
         self._babelnet_generator = BabelnetConceptGenerator()
     
-    def __call__(self, **arg_values):
+    def __call__(self, origin_text, **dir_args):
         # origin_phrase_list, origin_sentence_list, word_list = arg_values["phrase_list"], arg_values["sentence_list"]
-        origin_unit_list =  arg_values["unit_list"]
+        origin_unit_list =  dir_args["unit_list"]
         # print(f"__call__ word_list = {word_list}")
         # origin_phrase_list = self._pre_flat_filter_map(origin_sentence_list, origin_phrase_list)
 
@@ -27,26 +27,33 @@ class SubstitutionListCombination:
         babelnet_substitution_list = self._babelnet_generator.generate_substitution(origin_unit_list)
         # print(f"__call__ babelnet_substitution_list = {babelnet_substitution_list}")
 
-        substitution_list = self._integrate(wordnet = wordnet_substitution_list, babelnet = babelnet_substitution_list)
+        substitution_list = self._integrate(origin_text, wordnet = wordnet_substitution_list, babelnet = babelnet_substitution_list)
         return substitution_list
         
-    def _integrate(self, **var_args):
-        wordnet_substitution_list = var_args["wordnet"]
-        babelnet_substitution_list = var_args["babelnet"]
+    def _integrate(self, *var_args, **dir_args):
+        origin_text = var_args[0]
+        wordnet_substitution_list = dir_args["wordnet"]
+        babelnet_substitution_list = dir_args["babelnet"]
+
         substitutions = []
         wordnet_len = len(wordnet_substitution_list)
         babelnet_len = len(babelnet_substitution_list)
-        if wordnet_len == babelnet_len:
-            for substituion_tuple in list(zip(wordnet_substitution_list, babelnet_substitution_list)):
-                original_token = substituion_tuple[0].original_token    
-                sentence_index = substituion_tuple[0].sentence_index
-                origin_position = substituion_tuple[0].origin_position
-                container = []
-                container.extend(substituion_tuple[0].candidate_tokens)
-                container.extend(substituion_tuple[1].candidate_tokens)
-                candidate_tokens = list(set(container))
-                print(f"_integrate original_token = {original_token}, origin_position = {origin_position} candidate_tokens = {candidate_tokens}")
-                substitutions.append(Substitution(original_token, candidate_tokens, sentence_index, origin_position, origin_position))
+        if not wordnet_len == babelnet_len:
+            print(f"**************** Error ************ wordnet_len != babelnet_len")
+            return []
+        for substituion_tuple in list(zip(wordnet_substitution_list, babelnet_substitution_list)):
+            original_token = substituion_tuple[0].original_token    
+            sentence_index = substituion_tuple[0].sentence_index
+            origin_position = substituion_tuple[0].origin_position
+
+            container = []
+            container.extend(substituion_tuple[0].candidate_tokens)
+            container.extend(substituion_tuple[1].candidate_tokens)
+            candidate_tokens = list(set(container))
+            print(f"_integrate original_token = {original_token}, origin candidate_tokens = {candidate_tokens}")
+            sim_threshold = 0.99
+            filter_candidate_tokens = spacy_process.filter_similar_doc(origin_text, origin_position, candidate_tokens, sim_threshold)
+            substitutions.append(Substitution(original_token, filter_candidate_tokens, sentence_index, origin_position, origin_position))
         return substitutions
 
     '''
@@ -57,7 +64,7 @@ class SubstitutionListCombination:
         sentence_index = attr.ib()
         position_list = attr.ib() # [start_index, end_index]
         
-        短语存在位置重叠，按最早结束和最短长度词语做贪心筛选
+        多个短语存在位置重叠，依据短语结束最早和长度最短做贪心筛选
     '''
     def _pre_flat_filter_map(self, origin_sentence_list, origin_phrase_list):
         if not isinstance(origin_phrase_list, list) or len (origin_phrase_list) <= 0:

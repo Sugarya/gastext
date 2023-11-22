@@ -34,12 +34,12 @@ if __name__ == '__main__':
         real_label = example[0]
         text = example[1]
         print(f"-------------------------------start--------------------------text = {text}")
+        # origin_phrases, local_sentences, word_lists = rule_based_extract.extract_example(text)
         origin_unit_list = spacy_process.split(text)
         selection_origin_unit_list, selection_fragile_list, attack_label = separation(real_label, text, unit_list = origin_unit_list)
-        # origin_phrases, local_sentences, word_lists = rule_based_extract.extract_example(text)
         
         # start_evaluation(local_sentences)
-        substitution_list = generate_substitution(unit_list = selection_origin_unit_list)
+        substitution_list = generate_substitution(text, unit_list = selection_origin_unit_list)
         # adversarial_sentences = random_walk_transform(substitution_list, local_sentences, real_label)
         # fresh_evaluation(adversarial_sentences)
     

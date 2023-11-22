@@ -14,6 +14,7 @@ class OriginalUnit:
     pos_tag = attr.ib()
     sentence_index = attr.ib()
     origin_position = attr.ib()
+    spacy_token = attr.ib()
 
 @attr.s
 class NetSubstitution:

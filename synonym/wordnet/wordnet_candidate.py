@@ -1,7 +1,7 @@
 
 from nltk.corpus import wordnet as wn
 from common import NetSubstitution
-from utils import nlp_process
+from utils import nlp_process, spacy_process
 
 # https://www.section.io/engineering-education/getting-started-with-nltk-wordnet-in-python/
 # Penn TreeBank POS tags:
@@ -23,12 +23,13 @@ class WordnetCandidateGenerator:
             substitution_list.append(substitution)
         return substitution_list
 
-    def generate_substitution(self, origin_unit_list):
+    def generate_substitution(self, origin_unit_list, similarity = 0.06):
         substitution_list = []
         for _, unit in enumerate(origin_unit_list):
             origin_word, wordnet_post = unit.word, nlp_process.get_wordnet_pos(unit.pos_tag)
             synonym_list = self._word_candidate(origin_word, wordnet_post)
-            print(f"generate_substitution origin_word = {origin_word}, wordnet_post = {wordnet_post}, synonym_list = {synonym_list}")
+            synonym_list = spacy_process.filter_similar(unit.spacy_token, synonym_list, similarity)
+            print(f"Wordnet generate_substitution origin_word = {origin_word}, wordnet_post = {wordnet_post}, synonym_list = {synonym_list}")
             substitution = NetSubstitution(origin_word, synonym_list, 0, unit.origin_position)
             # print(f"generate_substitution_by_words substitution = {substitution}")
             substitution_list.append(substitution)
