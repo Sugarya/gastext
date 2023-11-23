@@ -3,14 +3,14 @@ from .wordnet.wordnet_candidate import WordnetCandidateGenerator
 from .fillmask.encoder_decoder_candidate import FillMaskCandidateGenerator
 from .hownet.babelnet_candidate import BabelnetConceptGenerator
 from utils import spacy_process
-from common import Substitution
+from common import Candidate
 
 
 class SubstitutionListCombination:
 
     def __init__(self):
         self._wordnet_generator = WordnetCandidateGenerator()
-        self._fill_mask_generator = FillMaskCandidateGenerator()
+        # self._fill_mask_generator = FillMaskCandidateGenerator()
         self._babelnet_generator = BabelnetConceptGenerator()
     
     def __call__(self, origin_text, **dir_args):
@@ -35,7 +35,7 @@ class SubstitutionListCombination:
         wordnet_substitution_list = dir_args["wordnet"]
         babelnet_substitution_list = dir_args["babelnet"]
 
-        substitutions = []
+        candidates_list = []
         wordnet_len = len(wordnet_substitution_list)
         babelnet_len = len(babelnet_substitution_list)
         if not wordnet_len == babelnet_len:
@@ -43,18 +43,18 @@ class SubstitutionListCombination:
             return []
         for substituion_tuple in list(zip(wordnet_substitution_list, babelnet_substitution_list)):
             original_token = substituion_tuple[0].original_token    
-            sentence_index = substituion_tuple[0].sentence_index
             origin_position = substituion_tuple[0].origin_position
 
             container = []
             container.extend(substituion_tuple[0].candidate_tokens)
             container.extend(substituion_tuple[1].candidate_tokens)
             candidate_tokens = list(set(container))
+
             sim_threshold = 0.98
             filter_candidate_tokens = spacy_process.filter_similar_doc(origin_text, origin_position, candidate_tokens, sim_threshold)
-            print(f"_integrate original_token = {original_token}, similar filter_candidate_tokens = {filter_candidate_tokens}")
-            substitutions.append(Substitution(original_token, filter_candidate_tokens, sentence_index, origin_position, origin_position))
-        return substitutions
+            print(f"_integrate original_token = {original_token}, filter_candidate_tokens = {filter_candidate_tokens}")
+            candidates_list.append(list(map(lambda t : Candidate(t, 0), filter_candidate_tokens)))
+        return candidates_list
 
     '''
         pharse: 

@@ -90,4 +90,4 @@ def calculate_metrics(calculation_list):
         ave_perturbation_count = None
         ave_query_count = None
 
-    print(f"adversarial attack result: success_attack_count = {success_count}, success_attack_rate = {success_attack_rate}, adv_perturbation_count = {ave_perturbation_count}, querave_query_county_count = {ave_query_count}")
+    print(f"adversarial attack result: success_attack_count = {success_count}, success_attack_rate = {success_attack_rate}, adv_perturbation_count = {ave_perturbation_count}, ave_query_count = {ave_query_count}")

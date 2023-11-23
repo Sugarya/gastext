@@ -12,20 +12,21 @@ class Separation:
     def __init__(self, victim_model) -> None:
         self._victim_model = victim_model
 
+
+
     
     def __call__(self, *args: Any, **kwds: Any) -> Any:
-        real_label = args[0]
-        origin_text = args[1]
-        origin_unit_list = kwds["unit_list"]
+        origin_text = args[0]
+        real_label = args[1]
 
+        raw_token_list = spacy_process.tokenize(origin_text)
         origin_logits = self._victim_model(origin_text)
-        # print(f"Separation __call__ origin_unit_list size = {len(origin_unit_list)}, origin logits = {origin_logits}")
         if not real_label == np.argmax(origin_logits):
             print("********************Error**********, real_label {real_label} != argmax index")
-        
-        raw_token_list = spacy_process.tokenize(origin_text)
         label_unit_list = [ [] for _ in range(len(origin_logits)) ]
-        for i, unit in enumerate(origin_unit_list):
+
+        split_unit_list = spacy_process.split(origin_text)
+        for i, unit in enumerate(split_unit_list):
             position = unit.origin_position
             cp_token_list = [*raw_token_list]
             # print(f"word,  {unit.word} =?= {cp_token_list[position]}")
@@ -39,10 +40,11 @@ class Separation:
             diff_logits = list(map(lambda t : abs(t[0] - t[1]), list(zip(transform_logits, origin_logits))))
             # print(f"Separation __call__ diff_logits = {diff_logits}")
 
-            max_index = np.argmax(diff_logits)
-            max_fragile = diff_logits[max_index]
-            # print(f"Separation __call__ max_index = {max_index}, i = {i}, max_fragile = {max_fragile}")
-            label_unit_list[max_index].append((unit, max_fragile))
+            max_label = np.argmax(diff_logits)
+            max_fragile = diff_logits[max_label]
+            unit.fragile_value = max_fragile
+            label_unit_list[max_label].append(unit)
+            # print(f"Separation __call__ max_index = {max_label}, i = {i}, unit.fragile_value = {unit.fragile_value}")
 
             # diff_logits[max_index] = -1
             # print(f"Separation __call__ diff_logits after = {diff_logits}")
@@ -57,8 +59,6 @@ class Separation:
             counts[attack_label] = -1
             attack_label = np.argmax(counts)
         print(f"Separation __call__ counts = {counts}, attack_label = {attack_label}, real_label= {real_label}")
-        selection_label_unit_list = sorted(label_unit_list[attack_label], key = lambda t : t[1], reverse = True)
-        selection_unit_list = list(map(lambda t : t[0], selection_label_unit_list))
-        selection_fragile_list = list(map(lambda t : t[1], selection_label_unit_list))
+        selection_label_unit_list = sorted(label_unit_list[attack_label], key = lambda t : t.fragile_value, reverse = True)
         # print(f"Separation __call__  result = {selection_unit_list}")
-        return selection_unit_list, selection_fragile_list, attack_label
+        return selection_label_unit_list, attack_label

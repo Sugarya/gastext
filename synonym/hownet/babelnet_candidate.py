@@ -26,12 +26,12 @@ class BabelnetConceptGenerator:
         candicate_list = []
         for _, unit in enumerate(origin_unit_list):
             origin_word, lemma, pos_tag = unit.word, unit.lemma, unit.pos_tag
-            sentence_index, origin_position = unit.sentence_index, unit.origin_position
+            origin_position = unit.origin_position
             syn_list = self._get_syn_words(lemma, pos_tag)
             filter_syn_list = spacy_process.filter_similar(unit.spacy_token, syn_list, similarity)
             format_syn_list = list(map(lambda s: nlp_process.format_synonym(origin_word, s, pos_tag), filter_syn_list))
-            print(f"Babelnet generate_substitution origin_word = {origin_word}, lemma = {lemma}, pos_tag = {pos_tag}, format_syn_list = {format_syn_list}")
-            candicate_list.append(NetSubstitution(unit.word, format_syn_list, sentence_index, origin_position))
+            # print(f"Babelnet generate_substitution origin_word = {origin_word}, lemma = {lemma}, pos_tag = {pos_tag}, format_syn_list = {format_syn_list}")
+            candicate_list.append(NetSubstitution(unit.word, format_syn_list, origin_position))
         return candicate_list
 
     '''

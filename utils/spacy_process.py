@@ -4,6 +4,8 @@ from common import OriginalUnit
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 
 treebank_word_detokenizer = TreebankWordDetokenizer()
+# spacy.prefer_gpu()
+# TODO 更换更大的语言模型
 nlp = spacy.load('en_core_web_sm')
 # nlp = spacy.load('zh_core_web_sm')
 
@@ -80,7 +82,7 @@ def split(text):
         enable = not token.is_stop and not token.text in name_entity_list and not token.pos_ in FILTER_POS_TAG
         if enable:
             # print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.tag_, token.is_stop}")
-            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.tag_, 0, j, token))
+            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.tag_, 0, j, token, 0))
     return origin_unit_list
     
 '''
@@ -101,7 +103,7 @@ def split_list(texts):
             enable = not token.is_stop and not token.text in name_entity_list and not token.pos_ in FILTER_POS_TAG
             if enable:
                 print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.pos_, token.is_stop}")
-                token_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, i, j, token))
+                token_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, i, j, token, 0))
 
     return token_list
 

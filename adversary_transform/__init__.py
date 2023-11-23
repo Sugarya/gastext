@@ -1,1 +1,2 @@
 from .random_walk import RandomWalkTransfomer
+from .dynamic_planning import DynamicPlanning

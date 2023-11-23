@@ -30,8 +30,8 @@ class WordnetCandidateGenerator:
             synonym_list = self._word_candidate(lemma, pos_tag)
             filter_synonym_list = spacy_process.filter_similar(unit.spacy_token, synonym_list, similarity)
             format_synonym_list = list(map(lambda t : nlp_process.format_synonym(origin_word, t, pos_tag) , filter_synonym_list))
-            print(f"Wordnet generate_substitution origin_word = {origin_word} lemma = {lemma}, pos_tag = {pos_tag}, format_synonym_list = {format_synonym_list}")
-            substitution = NetSubstitution(origin_word, format_synonym_list, 0, unit.origin_position)
+            # print(f"Wordnet generate_substitution origin_word = {origin_word} lemma = {lemma}, pos_tag = {pos_tag}, format_synonym_list = {format_synonym_list}")
+            substitution = NetSubstitution(origin_word, format_synonym_list, unit.origin_position)
             # print(f"generate_substitution_by_words substitution = {substitution}")
             substitution_list.append(substitution)
         return substitution_list

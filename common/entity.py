@@ -15,13 +15,7 @@ class OriginalUnit:
     sentence_index = attr.ib()
     origin_position = attr.ib()
     spacy_token = attr.ib()
-
-@attr.s
-class NetSubstitution:
-    original_token = attr.ib() # ''
-    candidate_tokens = attr.ib() # ['', ''], 同义词集
-    sentence_index = attr.ib()
-    origin_position = attr.ib()
+    fragile_value = attr.ib()
 
 @attr.s
 class MaskSubstitution:
@@ -31,12 +25,16 @@ class MaskSubstitution:
     mask_example = attr.ib()
 
 @attr.s
-class Substitution:
+class NetSubstitution:
     original_token = attr.ib() # ''
     candidate_tokens = attr.ib() # ['', ''], 同义词集
-    sentence_index = attr.ib()
-    start_postion = attr.ib()
-    end_postion = attr.ib()
+    origin_position = attr.ib()
+
+@attr.s
+class Candidate:
+    synonym = attr.ib() # 同义词
+    fragile_value = attr.ib() # 脆弱值值
+    
 
 @attr.s
 class Calculation:
