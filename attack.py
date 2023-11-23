@@ -40,7 +40,7 @@ if __name__ == '__main__':
         
         # start_evaluation(local_sentences)
         candidate_lists = generate_substitution(text, unit_list = selection_unit_list)
-        adversarial_sentences = dynamic_planning(text, candidate_lists, selection_unit_list, attack = attack_label)
+        adversarial_example = dynamic_planning(text, candidate_lists, selection_unit_list, attack = attack_label)
         # fresh_evaluation(adversarial_sentences)
     
     # calculate_metrics(get_calculation_list())

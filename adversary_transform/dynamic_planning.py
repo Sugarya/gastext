@@ -8,7 +8,7 @@ class DynamicPlanning:
 
     def __init__(self, victim_model) -> None:
         self._victim_model = victim_model
-        self._transform_text = ''
+        self._adversarial_example = ''
 
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
@@ -17,13 +17,14 @@ class DynamicPlanning:
         selection_unit_list = args[2]
         attack_label = kwds["attack"]
 
-        candiates_unit_tuple_list = self.__cluster(candidate_lists, selection_unit_list) 
-        enable = self.__generate_graph(candiates_unit_tuple_list, attack_label, origin_text)
-
+        candidates_unit_tuple_list = self.__cluster(candidate_lists, selection_unit_list) 
+        enable, candidates_unit_tuple_list = self.__generate_graph(candidates_unit_tuple_list, attack_label, origin_text)
         if enable:
-            pass
+            self.__search(candidates_unit_tuple_list, attack_label, origin_text)
         
-        return self._transform_text
+        print(f"__call__ _adversarial_example = {self._adversarial_example}")
+        return 
+        
     '''
         脆弱值做聚类，输出第一组列表的大小
 
@@ -44,20 +45,21 @@ class DynamicPlanning:
             fragile_value
     '''
     def __cluster(self, candidate_lists, selection_unit_list):
-        candiates_unit_tuple_list = list(filter(lambda t : len(t[0]) > 0, list(zip(candidate_lists, selection_unit_list))))
-        candiates_unit_tuple_list = list(map(lambda t : [t[0], t[1]], candiates_unit_tuple_list))
-        # TODO
+        candidates_unit_tuple_list = list(filter(lambda t : len(t[0]) > 0, list(zip(candidate_lists, selection_unit_list))))
+        candidates_unit_tuple_list = list(map(lambda t : [t[0], t[1]], candidates_unit_tuple_list))
+        # TODO 聚类
 
-        if len(candiates_unit_tuple_list) >= 4:
-            return candiates_unit_tuple_list[0:4]
+        if len(candidates_unit_tuple_list) >= 4:
+            return candidates_unit_tuple_list[0:4]
         else:
-            return candiates_unit_tuple_list
+            return candidates_unit_tuple_list
     '''
 
     '''
     def __generate_graph(self, candiates_unit_tuple_list, attack_label, origin_text):
         # Phase I: 确定图的连边
         origin_logits = self._victim_model(origin_text)
+        real_label = np.argmax(origin_logits)
         origin_token_list = spacy_process.tokenize(origin_text)
         # print(f"__generate_graph origin_logits = {origin_logits}")
         for candiates_unit_tuple in candiates_unit_tuple_list:
@@ -72,33 +74,63 @@ class DynamicPlanning:
                 transform_logits = self._victim_model(transform_text)
                 # print(f"__generate_graph transform_logits = {transform_logits}")
                 max_transform_label = np.argmax(transform_logits)
-                # TODO 改成概率值最大
-                if max_transform_label == attack_label:
+                # TODO 改成概率值最大,更新脆弱值计算方式
+                if not max_transform_label == real_label:
                     print("**************************************************FIND IT****************************")
-                    self._transform_text = transform_text
-                    return False
+                    self._adversarial_example = transform_text
+                    return False, None
                 # TODO abs(t[0] - t[1]) or t[0] - t[1] 二选一
-                diff_logits = list(map(lambda t : t[0] - t[1], list(zip(transform_logits, origin_logits))))
-                # TODO 二选一
-                if diff_logits[attack_label] > 0:
-                    candidate.fragile_value = diff_logits[attack_label]
+                if not attack_label == real_label:
+                    candidate.fragile_value = (transform_logits[attack_label] - origin_logits[attack_label]) + (origin_logits[real_label] - transform_logits[real_label])
+                else:
+                    candidate.fragile_value = transform_logits[attack_label] - origin_logits[attack_label]
+                candidate.transform_token_list = cp_origin_token_list
                 # max_label = np.argmax(diff_logits)
                 # print(f"__generate_graph attack_label = {attack_label}, max_label = {max_label}  diff_logits = {diff_logits} ")
                 # if diff_logits[attack_label] > 0 and max_label == attack_label:
                 #     candidate.fragile_value = diff_logits[max_label]
+                #     candidate.transform_token_list = cp_origin_token_list
             filter_candidate_list = list(filter(lambda t : t.fragile_value > 0, candidate_list))
             sorted_candidate_list = list(sorted(filter_candidate_list, key = lambda t : t.fragile_value, reverse = True))
             print(f"__generate_graph {len(candidate_list)} --> {len(sorted_candidate_list)}, sorted_candidate_list = {sorted_candidate_list}")
             candiates_unit_tuple[0] = sorted_candidate_list
 
         # Phase II: 构造图数据结构,candiates_unit_tuple_list
-        filter_candiates_unit_tuple_list = list(filter(lambda t : len(t[0]) > 0, candiates_unit_tuple_list))
-        
+        filter_candidates_unit_tuple_list = list(filter(lambda t : len(t[0]) > 0, candiates_unit_tuple_list))
 
-        return True
+        return True, filter_candidates_unit_tuple_list
 
-    def __search(self):
+    '''
+        动态规划查找
+    '''
+    def __search(self, candidates_unit_tuple_list, attack_label, origin_text):
+        origin_logits = self._victim_model(origin_text)
+        real_label = np.argmax(origin_logits)
+        candiates_unit_len = len(candidates_unit_tuple_list)
+        for i in range(1, candiates_unit_len):
+            candidates_unit_tuple = candidates_unit_tuple_list[i]
+            candidates = candidates_unit_tuple[0]
+            unit = candidates_unit_tuple[1]
+            origin_position = unit.origin_position
+            previous_candidates = candidates_unit_tuple_list[i - 1][0]
+            
+            for _, candidate in enumerate(candidates):
+                for previous_candi in previous_candidates:
+                    previous_candi.transform_token_list[origin_position] = candidate.synonym
+                    transform_text = spacy_process.detokenize(previous_candi.transform_token_list)
+                    transform_logits = self._victim_model(transform_text)
+                    max_transform_label = np.argmax(transform_logits)
+                    if not max_transform_label == real_label:
+                        print("****************************************************__search FIND IT ****************************")
+                        print(f"__search max_transform_label = {max_transform_label}, attack_label = {attack_label}, real_label = {real_label}")
+                        self._adversarial_example = transform_text
+                        return None
+                    
+                    if not attack_label == real_label:
+                        previous_candi.fragile_value = (transform_logits[attack_label] - origin_logits[attack_label]) + (origin_logits[real_label] - transform_logits[real_label])
+                    else:
+                        previous_candi.fragile_value = transform_logits[attack_label] - origin_logits[attack_label]
 
-        
-        pass    
-
+                max_index = np.argmax(list(map(lambda t : t.fragile_value, previous_candidates)))
+                candidate.transform_token_list = previous_candidates[max_index].transform_token_list
+                candidate.fragile_value = previous_candidates[max_index].fragile_value
