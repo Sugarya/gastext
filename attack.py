@@ -34,7 +34,7 @@ if __name__ == '__main__':
     origin_examples = load_data(dataset_name)
     for index, example in enumerate(origin_examples):
         real_label, text = example[0], example[1]
-        print(f"-------------------------------start--------------------------text = {text}")
+        print(f"------------------------------- start {index} --------------------------text = {text}")
         # origin_phrases, local_sentences, word_lists = rule_based_extract.extract_example(text)
         selection_unit_list, attack_label = separation(text, real_label)
         

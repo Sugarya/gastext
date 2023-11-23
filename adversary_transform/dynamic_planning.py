@@ -6,9 +6,8 @@ import numpy as np
 
 class DynamicPlanning:
 
-    def __init__(self, victim_model) -> None:
+    def __init__(self, victim_model):
         self._victim_model = victim_model
-        self._adversarial_example = ''
 
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
@@ -18,13 +17,11 @@ class DynamicPlanning:
         attack_label = kwds["attack"]
 
         candidates_unit_tuple_list = self.__cluster(candidate_lists, selection_unit_list) 
-        enable, candidates_unit_tuple_list = self.__generate_graph(candidates_unit_tuple_list, attack_label, origin_text)
-        if enable:
-            self.__search(candidates_unit_tuple_list, attack_label, origin_text)
-        
-        print(f"__call__ _adversarial_example = {self._adversarial_example}")
-        return 
-        
+        need_search, result = self.__generate_graph(candidates_unit_tuple_list, attack_label, origin_text)
+        if need_search:
+            return self.__search(result, attack_label, origin_text)
+        else:
+            return result
     '''
         脆弱值做聚类，输出第一组列表的大小
 
@@ -76,9 +73,10 @@ class DynamicPlanning:
                 max_transform_label = np.argmax(transform_logits)
                 # TODO 改成概率值最大,更新脆弱值计算方式
                 if not max_transform_label == real_label:
-                    print("**************************************************FIND IT****************************")
-                    self._adversarial_example = transform_text
-                    return False, None
+                    print("************************************************** FIND IT ****************************")
+                    print(f"__generate_graph change word count = 1, adversarial_example = {transform_text}")
+                    print(f"__generate_graph max_transform_label = {max_transform_label}, real_label = {real_label}")
+                    return False, transform_text
                 # TODO abs(t[0] - t[1]) or t[0] - t[1] 二选一
                 if not attack_label == real_label:
                     candidate.fragile_value = (transform_logits[attack_label] - origin_logits[attack_label]) + (origin_logits[real_label] - transform_logits[real_label])
@@ -92,7 +90,7 @@ class DynamicPlanning:
                 #     candidate.transform_token_list = cp_origin_token_list
             filter_candidate_list = list(filter(lambda t : t.fragile_value > 0, candidate_list))
             sorted_candidate_list = list(sorted(filter_candidate_list, key = lambda t : t.fragile_value, reverse = True))
-            print(f"__generate_graph {len(candidate_list)} --> {len(sorted_candidate_list)}, sorted_candidate_list = {sorted_candidate_list}")
+            # print(f"__generate_graph {len(candidate_list)} --> {len(sorted_candidate_list)}, sorted_candidate_list = {sorted_candidate_list}")
             candiates_unit_tuple[0] = sorted_candidate_list
 
         # Phase II: 构造图数据结构,candiates_unit_tuple_list
@@ -121,10 +119,10 @@ class DynamicPlanning:
                     transform_logits = self._victim_model(transform_text)
                     max_transform_label = np.argmax(transform_logits)
                     if not max_transform_label == real_label:
-                        print("****************************************************__search FIND IT ****************************")
-                        print(f"__search max_transform_label = {max_transform_label}, attack_label = {attack_label}, real_label = {real_label}")
-                        self._adversarial_example = transform_text
-                        return None
+                        print("**************************************************** DynamicPlan FIND IT ****************************")
+                        print(f"__search adversarial_example = {transform_text}")
+                        print(f"__search change word count = {i}, max_transform_label = {max_transform_label}, real_label = {real_label}")
+                        return transform_text
                     
                     if not attack_label == real_label:
                         previous_candi.fragile_value = (transform_logits[attack_label] - origin_logits[attack_label]) + (origin_logits[real_label] - transform_logits[real_label])
@@ -134,3 +132,4 @@ class DynamicPlanning:
                 max_index = np.argmax(list(map(lambda t : t.fragile_value, previous_candidates)))
                 candidate.transform_token_list = previous_candidates[max_index].transform_token_list
                 candidate.fragile_value = previous_candidates[max_index].fragile_value
+        return ''

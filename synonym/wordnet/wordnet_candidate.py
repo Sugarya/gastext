@@ -47,7 +47,7 @@ class WordnetCandidateGenerator:
                 substitution_list.append(substitution)
         return substitution_list
     
-    def _word_candidate(self, word, pos_tag = None):
+    def _word_candidate(self, word, pos_tag = ''):
         synsets = []
         try:
             wordnet_pos = nlp_process.get_wordnet_pos(pos_tag)
