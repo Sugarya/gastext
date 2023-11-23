@@ -26,11 +26,12 @@ class WordnetCandidateGenerator:
     def generate_substitution(self, origin_unit_list, similarity = 0.06):
         substitution_list = []
         for _, unit in enumerate(origin_unit_list):
-            origin_word, wordnet_post = unit.word, nlp_process.get_wordnet_pos(unit.pos_tag)
-            synonym_list = self._word_candidate(origin_word, wordnet_post)
-            synonym_list = spacy_process.filter_similar(unit.spacy_token, synonym_list, similarity)
-            print(f"Wordnet generate_substitution origin_word = {origin_word}, wordnet_post = {wordnet_post}, synonym_list = {synonym_list}")
-            substitution = NetSubstitution(origin_word, synonym_list, 0, unit.origin_position)
+            origin_word, lemma, pos_tag = unit.word, unit.lemma, unit.pos_tag
+            synonym_list = self._word_candidate(lemma, pos_tag)
+            filter_synonym_list = spacy_process.filter_similar(unit.spacy_token, synonym_list, similarity)
+            format_synonym_list = list(map(lambda t : nlp_process.format_synonym(origin_word, t, pos_tag) , filter_synonym_list))
+            print(f"Wordnet generate_substitution origin_word = {origin_word} lemma = {lemma}, pos_tag = {pos_tag}, format_synonym_list = {format_synonym_list}")
+            substitution = NetSubstitution(origin_word, format_synonym_list, 0, unit.origin_position)
             # print(f"generate_substitution_by_words substitution = {substitution}")
             substitution_list.append(substitution)
         return substitution_list
@@ -49,7 +50,8 @@ class WordnetCandidateGenerator:
     def _word_candidate(self, word, pos_tag = None):
         synsets = []
         try:
-            synsets = wn.synsets(word, pos = pos_tag)
+            wordnet_pos = nlp_process.get_wordnet_pos(pos_tag)
+            synsets = wn.synsets(word, pos = wordnet_pos)
         except (RuntimeError, KeyError):
             synsets = []
         wordnet_synonyms = [ synset.lemma_names() for synset in synsets]
@@ -57,7 +59,6 @@ class WordnetCandidateGenerator:
         for synonym in wordnet_synonyms:
             synonym_list.extend(synonym)
         synonym_list = list(set(synonym_list))
-        synonym_list = list(map(lambda t : nlp_process.format(t, word) , synonym_list))
         return synonym_list
 
     

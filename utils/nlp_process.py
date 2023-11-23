@@ -1,4 +1,6 @@
 from nltk.corpus import wordnet as wn
+from lemminflect import getInflection
+from enum import Enum
 
 SUPPORTED_POS_TAGS = [
     'CC',  # coordinating conjunction, like "and but neither versus whether yet so"
@@ -40,6 +42,7 @@ SUPPORTED_POS_TAGS = [
 ]
 
 def get_wordnet_pos(treebank_tag):
+    treebank_tag = treebank_tag.upper()
     if treebank_tag.startswith('J') or treebank_tag.startswith('A'):
         return wn.ADJ
     elif treebank_tag.startswith('V'):
@@ -50,17 +53,56 @@ def get_wordnet_pos(treebank_tag):
         return wn.ADV
     else:
         return ''
-    
-def format(word, reference_word):
-    word = remove_underline(word)
-    return recover_word_case(word, reference_word)
 
-def recover_word_case(word, reference_word):
-    # TODO 增加时态，语态
+
+def format_synonym(origin_word, lemma, pos_tag):
+    # print(f"format_synonym origin_word = {origin_word}, lemma = {lemma}, pos_tag = {pos_tag}")
+    inflection_word = transform_inflection(lemma, pos_tag)
+    return _recover_word_case(inflection_word, origin_word)
+
+
+def format(word, reference_word):
+    word = _remove_underline(word)
+    return _recover_word_case(word, reference_word)
+
+
+'''
+词的屈折变换
+'''
+def transform_inflection(lemma, pos_tag):
+    transform_word = lemma
+    if isinstance(lemma, str):
+        if not '_' in lemma:
+            transform_word = __get_inflection(lemma, pos_tag)
+        else:
+            word_list = lemma.split('_')
+            end_postion = len(word_list) - 1
+            if pos_tag.startswith('V'):
+                word_list[0] = __get_inflection(word_list[0], pos_tag)
+            else:
+                word_list[end_postion] = __get_inflection(word_list[end_postion], pos_tag)
+            transform_word = ' '.join(word_list)
+    return transform_word
+
+def __get_inflection(lemma_word, pos_tag):
+    inflection = lemma_word
+    inflection_tuple = getInflection(lemma_word, pos_tag)
+    if isinstance(inflection_tuple, tuple) and len(inflection_tuple) >= 1:
+        inflection = inflection_tuple[0]
+    return inflection
+
+
+'''
+词的大小写变换
+'''
+def _recover_word_case(word, reference_word):
+    # 保持大小写
     if reference_word.islower():
         return word.lower()
     elif reference_word.isupper() and len(reference_word) > 1:
         return word.upper()
+    
+    # 首字母大写
     elif reference_word[0].isupper() and reference_word[1:].islower():
         return word.capitalize()
     else:
@@ -69,7 +111,7 @@ def recover_word_case(word, reference_word):
 '''
 [bn:00005054n|apple|苹果, bn:00005076n|apple_tree|苹果树]
 '''    
-def remove_underline(word):
+def _remove_underline(word):
     if not isinstance(word, str):
         return word
     elif '_' in word:
@@ -81,3 +123,5 @@ def _pre_process_string(text):
     text = text.replace(" '", "'")
     text = text.replace("$", "")
     return text
+
+

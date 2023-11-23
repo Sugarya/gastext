@@ -79,8 +79,8 @@ def split(text):
     for j, token in enumerate(doc):
         enable = not token.is_stop and not token.text in name_entity_list and not token.pos_ in FILTER_POS_TAG
         if enable:
-            # print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.pos_, token.is_stop}")
-            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, 0, j, token))
+            # print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.tag_, token.is_stop}")
+            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.tag_, 0, j, token))
     return origin_unit_list
     
 '''
@@ -143,7 +143,7 @@ def filter_similar_doc(origin_text, origin_position, candidate_synonyms, similar
     # print(f"filter_similar_doc zip_list = {zip_list}")
     filter_zip_list = filter(lambda t : t[0] > similary_threshold, zip_list)
     sorted_zip_list = sorted(filter_zip_list, key = lambda t : t[0], reverse = True)
-    print(f"filter_similar_doc sorted_zip_list = {sorted_zip_list}")
+    # print(f"filter_similar_doc sorted_zip_list = {sorted_zip_list}")
     return list(map(lambda t : t[1], sorted_zip_list))
 
 def __get_similar_token_score(spacy_token, sentence):

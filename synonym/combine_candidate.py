@@ -50,9 +50,9 @@ class SubstitutionListCombination:
             container.extend(substituion_tuple[0].candidate_tokens)
             container.extend(substituion_tuple[1].candidate_tokens)
             candidate_tokens = list(set(container))
-            print(f"_integrate original_token = {original_token}, origin candidate_tokens = {candidate_tokens}")
-            sim_threshold = 0.99
+            sim_threshold = 0.98
             filter_candidate_tokens = spacy_process.filter_similar_doc(origin_text, origin_position, candidate_tokens, sim_threshold)
+            print(f"_integrate original_token = {original_token}, similar filter_candidate_tokens = {filter_candidate_tokens}")
             substitutions.append(Substitution(original_token, filter_candidate_tokens, sentence_index, origin_position, origin_position))
         return substitutions
 
