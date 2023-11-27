@@ -1,0 +1,16 @@
+{
+    "origin_text": "Ky . Company Wins Grant to Study Peptides ( AP ) . AP - A company founded by a chemistry researcher at the University of Louisville won a grant to develop a method of producing better peptides , which are short chains of amino acids , the building blocks of proteins .",
+    "origin_label": "3",
+    "adversary_text": "Ky. Company Wins Grant to Bailiwick Peptides (AP). AP - A company founded by a chemistry researcher at the University of Louisville won a grant to develop a method of producing better peptides, which are short chains of amino acids, the building blocks of proteins. ",
+    "attack_label": "2",
+    "query_count": 0,
+    "perturbation_count": 1,
+    "attack_status": "SUCCESS",
+    "origin_tokens": [
+        "Study"
+    ],
+    "substitution_tokens": [
+        "Bailiwick"
+    ],
+    "id": 0
+}

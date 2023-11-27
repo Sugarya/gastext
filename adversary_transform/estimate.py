@@ -1,7 +1,7 @@
 from typing import Any
 import numpy as np
 from scipy.special import softmax
-from evaluation_metrics import query_increase
+from metrics import query_increase
 
 
 class LikelihoodEstimator:

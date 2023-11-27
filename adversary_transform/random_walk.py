@@ -2,7 +2,6 @@ import random
 from typing import Any
 import numpy as np
 from .estimate import LikelihoodEstimator
-from evaluation_metrics import update_attack_status, update_perturbation_count, ATTACK_STATUS
 
 # 随机游走，生成候选对抗样本
 class RandomWalkTransfomer:
@@ -37,7 +36,6 @@ class RandomWalkTransfomer:
     '''
     def _reverse(self, candidate_sentence_list, selection_list):
         if len(selection_list) <= 0:
-            update_attack_status(ATTACK_STATUS.FAILURE)
             print("************************* FAILURE ********************")
             return []
         
@@ -69,10 +67,8 @@ class RandomWalkTransfomer:
                 perturbation_count = 0
                 for selection in local_selection_list:
                     perturbation_count += len(selection[2].split(' '))
-                update_perturbation_count(perturbation_count)
             else:
                 break
-        update_attack_status(ATTACK_STATUS.SUCCESS) 
 
         return new_sentence_list
   

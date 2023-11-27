@@ -21,8 +21,10 @@ class Separation:
 
         raw_token_list = spacy_process.tokenize(origin_text)
         origin_logits = self._victim_model(origin_text)
-        if not real_label == np.argmax(origin_logits):
-            print(f"********************Error**********, real_label = {real_label} != argmax index")
+        test_real_label = np.argmax(origin_logits)
+        if not real_label == test_real_label:
+            print(f"********************Warning*********** real_label != np.argmax(origin_logits): {real_label} <==> {test_real_label}")
+            real_label = test_real_label
         label_unit_list = [ [] for _ in range(len(origin_logits)) ]
 
         split_unit_list = spacy_process.split(origin_text)

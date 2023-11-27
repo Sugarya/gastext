@@ -1,8 +1,9 @@
-
-
+import numpy as np
 from typing import Any
 from utils import spacy_process
-import numpy as np
+from metrics import calculate
+from tqdm import tqdm
+
 
 class DynamicPlanning:
 
@@ -59,7 +60,7 @@ class DynamicPlanning:
         real_label = np.argmax(origin_logits)
         origin_token_list = spacy_process.tokenize(origin_text)
         # print(f"__generate_graph origin_logits = {origin_logits}")
-        for candiates_unit_tuple in candiates_unit_tuple_list:
+        for candiates_unit_tuple in tqdm(candiates_unit_tuple_list, desc = 'generate a graph'):
             origin_word = candiates_unit_tuple[1].word
             origin_position = candiates_unit_tuple[1].origin_position
             candidate_list = candiates_unit_tuple[0]
@@ -74,8 +75,11 @@ class DynamicPlanning:
                 # TODO 改成概率值最大,更新脆弱值计算方式
                 if not max_transform_label == real_label:
                     print("************************************************** FIND IT ****************************")
-                    print(f"__generate_graph change word count = 1, adversarial_example = {transform_text}")
-                    print(f"__generate_graph max_transform_label = {max_transform_label}, real_label = {real_label}")
+                    calculate.label(real_label, max_transform_label)
+                    calculate.append_origin_token(origin_word)
+                    calculate.perturbation_count(1)
+                    calculate.attack_success()
+                    calculate.append_substituion_token(candidate.synonym)
                     return False, transform_text
                 # TODO abs(t[0] - t[1]) or t[0] - t[1] 二选一
                 if not attack_label == real_label:
@@ -95,7 +99,6 @@ class DynamicPlanning:
 
         # Phase II: 构造图数据结构,candiates_unit_tuple_list
         filter_candidates_unit_tuple_list = list(filter(lambda t : len(t[0]) > 0, candiates_unit_tuple_list))
-
         return True, filter_candidates_unit_tuple_list
 
     '''
@@ -105,7 +108,12 @@ class DynamicPlanning:
         origin_logits = self._victim_model(origin_text)
         real_label = np.argmax(origin_logits)
         candiates_unit_len = len(candidates_unit_tuple_list)
-        for i in range(1, candiates_unit_len):
+        for i in tqdm(range(0, candiates_unit_len), desc = 'dynamic planing'):
+            # 统计指标
+            calculate.append_origin_token(candidates_unit_tuple_list[i][1].word)
+            calculate.perturbation_count(i + 1)
+            if i == 0:
+                continue
             candidates_unit_tuple = candidates_unit_tuple_list[i]
             candidates = candidates_unit_tuple[0]
             unit = candidates_unit_tuple[1]
@@ -120,8 +128,8 @@ class DynamicPlanning:
                     max_transform_label = np.argmax(transform_logits)
                     if not max_transform_label == real_label:
                         print("**************************************************** DynamicPlan FIND IT ****************************")
-                        print(f"__search adversarial_example = {transform_text}")
-                        print(f"__search change word count = {i}, max_transform_label = {max_transform_label}, real_label = {real_label}")
+                        calculate.label(real_label, transform_text)
+                        calculate.attack_success()
                         return transform_text
                     
                     if not attack_label == real_label:

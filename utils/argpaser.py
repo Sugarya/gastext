@@ -21,6 +21,12 @@ def parse_arguments():
                            type=str,
                            help="the fill mask model")
     
+    parser.add_argument("--output",
+                           default="result",
+                           type=str,
+                           help="the result of attack")
+
+    
     args = parser.parse_args()
 
     global Argument_Dict
