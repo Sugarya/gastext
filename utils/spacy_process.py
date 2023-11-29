@@ -68,6 +68,9 @@ def print_tag_description():
     for tag, description in tag_descriptions.items():
         print(f"{tag}: {description}")
 
+'''
+    过滤掉 stop word, 数字, 标点符号, 命名实体
+'''
 def split(text):
     doc = nlp(text)
     name_entity_list = []
@@ -82,7 +85,7 @@ def split(text):
         enable = not token.is_stop and not token.text in name_entity_list and not token.pos_ in FILTER_POS_TAG
         if enable:
             # print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.tag_, token.is_stop}")
-            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.tag_, 0, j, token, 0))
+            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.tag_, 0, j, token, 0, 0))
     return origin_unit_list
     
 '''

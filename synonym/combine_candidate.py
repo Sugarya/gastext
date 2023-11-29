@@ -30,6 +30,9 @@ class SubstitutionListCombination:
         substitution_list = self._integrate(origin_text, wordnet = wordnet_substitution_list, babelnet = babelnet_substitution_list)
         return substitution_list
         
+    '''
+
+    '''    
     def _integrate(self, *var_args, **dir_args):
         origin_text = var_args[0]
         wordnet_substitution_list = dir_args["wordnet"]
@@ -53,7 +56,7 @@ class SubstitutionListCombination:
             sim_threshold = 0.98
             filter_candidate_tokens = spacy_process.filter_similar_doc(origin_text, origin_position, candidate_tokens, sim_threshold)
             # print(f"_integrate original_token = {original_token}, filter_candidate_tokens = {filter_candidate_tokens}")
-            candidates_list.append(list(map(lambda t : Candidate(t, 0), filter_candidate_tokens)))
+            candidates_list.append(list(map(lambda t : Candidate(t, 0, 0), filter_candidate_tokens)))
         return candidates_list
 
     '''

@@ -20,7 +20,9 @@ class OriginalUnit:
     sentence_index = attr.ib()
     origin_position = attr.ib()
     spacy_token = attr.ib()
-    fragile_value = attr.ib()
+    saliency_score = attr.ib() # unknown替换后的脆弱值
+    fragile = attr.ib() # 最终的脆弱值
+
 
 @attr.s
 class MaskSubstitution:
@@ -38,7 +40,8 @@ class NetSubstitution:
 @attr.s
 class Candidate:
     synonym = attr.ib() # 同义词
-    fragile_value = attr.ib() # 脆弱值值
+    fragile = attr.ib() # 脆弱值
+    temp_fragile = attr.ib()
     
 
 

@@ -1,13 +1,12 @@
 import random
 from typing import Any
 import numpy as np
-from .estimate import LikelihoodEstimator
 
 # 随机游走，生成候选对抗样本
 class RandomWalkTransfomer:
 
     def __init__(self, victim_model):
-        self._estimator = LikelihoodEstimator(victim_model)
+        self._estimator = None
 
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
