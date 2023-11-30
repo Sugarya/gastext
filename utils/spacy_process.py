@@ -69,7 +69,10 @@ def print_tag_description():
         print(f"{tag}: {description}")
 
 '''
-    过滤掉 stop word, 数字, 标点符号, 命名实体
+    过滤掉
+    stop word
+    数字, 标点符号
+    命名实体
 '''
 def split(text):
     doc = nlp(text)
@@ -82,10 +85,12 @@ def split(text):
     
     origin_unit_list = []
     for j, token in enumerate(doc):
-        enable = not token.is_stop and not token.text in name_entity_list and not token.pos_ in FILTER_POS_TAG
-        if enable:
+        disable_stop_word = not token.is_stop 
+        gnore_NE = not token.text in name_entity_list 
+        ignore_number_punc = not token.pos_ in FILTER_POS_TAG
+        if disable_stop_word and gnore_NE and ignore_number_punc:
             # print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.tag_, token.is_stop}")
-            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.tag_, 0, j, token, 0, 0))
+            origin_unit_list.append(OriginalUnit(token.text, token.lemma_, token.tag_, 0, j, token, []))
     return origin_unit_list
     
 '''
@@ -106,7 +111,7 @@ def split_list(texts):
             enable = not token.is_stop and not token.text in name_entity_list and not token.pos_ in FILTER_POS_TAG
             if enable:
                 print(f"SpacyProcessor tokenize: {token.text, token.lemma_, token.pos_, token.is_stop}")
-                token_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, i, j, token, 0))
+                token_list.append(OriginalUnit(token.text, token.lemma_, token.pos_, i, j, token, []))
 
     return token_list
 

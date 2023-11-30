@@ -17,11 +17,13 @@ class OriginalUnit:
     word = attr.ib()
     lemma = attr.ib()
     pos_tag = attr.ib()
+
     sentence_index = attr.ib()
     origin_position = attr.ib()
     spacy_token = attr.ib()
-    saliency_score = attr.ib() # unknown替换后的脆弱值
-    fragile = attr.ib() # 最终的脆弱值
+
+    saliencies = attr.ib() # 位置等级，由同义词集的脆弱值计算得出, 列表 []
+    # saliency_score = attr.ib() # unknown替换后的脆弱值
 
 
 @attr.s
@@ -40,9 +42,9 @@ class NetSubstitution:
 @attr.s
 class Candidate:
     synonym = attr.ib() # 同义词
-    fragile = attr.ib() # 脆弱值
+    diff_probs = attr.ib() # 计算脆弱值，中间变量
+    fragile_probs = attr.ib() # 脆弱值列表
     temp_fragile = attr.ib()
-    
 
 
 class CalculationEntity:
